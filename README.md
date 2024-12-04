@@ -8,3 +8,4 @@ To execute brute force or masked attacks you will need to change the hardcoded c
 All commands prompt for sudo rights during execution.
 The ideal execution of this application is for those of you with several dictionaries and a single hccap file you wish to run tests against. If you have already solved the raw text of a hash in hashcat the "show" button will display the previously captured data in the pot.
 Feel free to make any changes to the commands as you see fit.
+![image](https://github.com/user-attachments/assets/d2f2606d-9de6-48f4-89dd-c57159840ea7)
