@@ -68,7 +68,7 @@ def crack_multiple_dicts(hccap, dictionaries):
     
     for idx, dictionary in enumerate(dictionaries):
         # Run the hashcat command and capture the output in real time
-        mycommand = f'{hashcatPath} -m 22000 "{hccap}" "{dictionary}" -w 3 --status --status-timer=5'
+        mycommand = f'{hashcatPath} -m 22000 -a 0 "{hccap}" "{dictionary}" -w 3 --status --status-timer=5'
         process = subprocess.Popen(mycommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace')
 
         # Monitor progress by reading the process output in real time
@@ -153,14 +153,14 @@ def browse1():
 def browse2():
     global hccap
     window.filename = filedialog.asksaveasfilename(initialdir=hccapPath, title="Save as",
-                                                   filetypes=(("hccap files", "*.hccap"), ("all files", "*.*")))
+                                                   filetypes=(("22000 files", "*.22000"), ("hccap files", "*.hccap"), ("all files", "*.*")))
     hccap = window.filename
     print('File:', hccap, 'loaded')
 
 def browse3():
     global hccap
     window.filename = filedialog.askopenfilename(initialdir=hccapPath, title="Select Hccap File",
-                                                 filetypes=(("hccap files", "*.hccap"), ("all files", "*.*")))
+                                                 filetypes=(("22000 files", "*.22000"), ("hccap files", "*.hccap"), ("all files", "*.*")))
     hccap = window.filename
     print('File:', hccap, 'loaded')
 
@@ -252,10 +252,10 @@ def settings():
 pad_x, pad_y = 10, 5
 
 # Convert to hccap section
-tk.Label(text="Convert a cap to hccap").grid(column=0, row=0, columnspan=4, sticky="W", padx=pad_x, pady=pad_y)
+tk.Label(text="Convert a cap to .22000").grid(column=0, row=0, columnspan=4, sticky="W", padx=pad_x, pady=pad_y)
 tk.Button(text="Source", command=browse1, width=15).grid(column=0, row=1, sticky="W", padx=pad_x, pady=pad_y)
 tk.Button(text="Destination", command=browse2, width=15).grid(column=1, row=1, sticky="W", padx=pad_x, pady=pad_y)
-tk.Button(text="Convert to hccap", command=convert2hccap, width=35).grid(column=2, row=1, columnspan=2, sticky="W", padx=pad_x, pady=pad_y)
+tk.Button(text="Convert to .22000", command=convert2hccap, width=35).grid(column=2, row=1, columnspan=2, sticky="W", padx=pad_x, pady=pad_y)
 
 # Crack hash section
 tk.Label(text="Crack Hash").grid(column=0, row=2, columnspan=4, sticky="W", padx=pad_x, pady=pad_y)
