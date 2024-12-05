@@ -11,7 +11,7 @@ import re
 # Initialize GUI window
 window = tk.Tk()
 window.title("Arlen's Hashcat Tool")
-window.geometry("600x450")
+window.geometry("600x600")
 
 # Config file setup
 config = configparser.ConfigParser()
@@ -69,7 +69,7 @@ def crack_multiple_dicts(hccap, dictionaries):
     for idx, dictionary in enumerate(dictionaries):
         # Run the hashcat command and capture the output in real time
         mycommand = f'{hashcatPath} -m 22000 "{hccap}" "{dictionary}" -w 3 --status --status-timer=5'
-        process = subprocess.Popen(mycommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen(mycommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace')
 
         # Monitor progress by reading the process output in real time
         while True:
@@ -93,6 +93,47 @@ def crack_multiple_dicts(hccap, dictionaries):
             status_var.set("Found")
             status_label.config(fg="green")
             break
+    else:
+        status_var.set("Exhausted")
+        status_label.config(fg="red")
+
+    # Set progress to 100% when done
+    progress_var.set(100)
+    window.update_idletasks()
+
+# Brute force function
+def brute_force(hccap, length):
+    status_var.set("Running")
+    window.update_idletasks()
+
+    # Create mask based on length
+    mask = "?a" * length
+
+    # Run the hashcat brute force command
+    mycommand = f'{hashcatPath} -m 22000 "{hccap}" -a 3 "{mask}" -w 3 --status --status-timer=5'
+    process = subprocess.Popen(mycommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace')
+
+    # Monitor progress by reading the process output in real time
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())  # Print to terminal for debugging purposes
+            # Extract progress percentage using regex
+            match = re.search(r'Progress.*?([0-9]+\.[0-9]+)%', output)
+            if match:
+                try:
+                    progress_value = float(match.group(1))
+                    progress_var.set(int(progress_value))
+                    window.update_idletasks()
+                except ValueError:
+                    pass
+
+    # If hashcat returns a success code
+    if process.returncode == 0:
+        status_var.set("Found")
+        status_label.config(fg="green")
     else:
         status_var.set("Exhausted")
         status_label.config(fg="red")
@@ -171,6 +212,21 @@ def hashcatShow():
         mycommand = f'{hashcatPath} -m 22000 "{hccap}" --show'
         os.system(mycommand)
 
+def bruteForce():
+    if hccap == 'x':
+        print("You need to load an hccap file first")
+    elif not hashcatPath:
+        messagebox.showerror("Error", "Please specify the path to Hashcat first.")
+    else:
+        try:
+            length = int(length_entry.get())
+            if length < 1:
+                raise ValueError
+            # Run the brute force process in a separate thread to avoid freezing the GUI
+            threading.Thread(target=brute_force, args=(hccap, length)).start()
+        except ValueError:
+            messagebox.showerror("Error", "Please specify a valid length (positive integer) for brute forcing.")
+
 def settings():
     settings_window = tk.Toplevel(window)
     settings_window.title("Settings")
@@ -210,16 +266,23 @@ tk.Button(text="Select Dictionaries", command=browse4, width=20).grid(column=3, 
 tk.Button(text="Crack Hash", command=hashcat, width=50).grid(column=0, row=4, columnspan=4, sticky="W", padx=pad_x, pady=pad_y)
 tk.Button(text="Show Known", command=hashcatShow, width=50).grid(column=0, row=5, columnspan=4, sticky="W", padx=pad_x, pady=pad_y)
 
+# Brute force section
+tk.Label(text="Brute Force Options").grid(column=0, row=6, columnspan=4, sticky="W", padx=pad_x, pady=pad_y)
+tk.Label(text="Length").grid(column=0, row=7, sticky="W", padx=pad_x, pady=pad_y)
+length_entry = tk.Entry(window, width=10)
+length_entry.grid(column=1, row=7, sticky="W", padx=pad_x, pady=pad_y)
+tk.Button(text="Start Brute Force", command=bruteForce, width=20).grid(column=3, row=7, sticky="W", padx=pad_x, pady=pad_y)
+
 # Progress bar
-tk.Label(text="Progress:").grid(column=0, row=6, sticky="W", padx=pad_x, pady=pad_y)
+tk.Label(text="Progress:").grid(column=0, row=8, sticky="W", padx=pad_x, pady=pad_y)
 progress_var = tk.IntVar()
 progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-progress_bar.grid(column=1, row=6, columnspan=3, sticky="W", padx=pad_x, pady=pad_y)
+progress_bar.grid(column=1, row=8, columnspan=3, sticky="W", padx=pad_x, pady=pad_y)
 
 # Status label
-tk.Label(text="Status:").grid(column=0, row=7, sticky="W", padx=pad_x, pady=pad_y)
+tk.Label(text="Status:").grid(column=0, row=9, sticky="W", padx=pad_x, pady=pad_y)
 status_label = tk.Label(window, textvariable=status_var, fg="black")
-status_label.grid(column=1, row=7, columnspan=3, sticky="W", padx=pad_x, pady=pad_y)
+status_label.grid(column=1, row=9, columnspan=3, sticky="W", padx=pad_x, pady=pad_y)
 
 # Settings button
 tk.Button(window, text="Settings", command=settings, width=15).grid(column=3, row=0, sticky="E", padx=pad_x, pady=pad_y)
