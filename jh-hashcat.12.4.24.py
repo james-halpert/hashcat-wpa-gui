@@ -7,6 +7,7 @@ from tkinter import messagebox
 import configparser
 import time
 import re
+import shutil   # For locating executables
 
 # Initialize GUI window
 window = tk.Tk()
@@ -29,6 +30,14 @@ def load_config():
         hashcatPath = ''
         hcxpcapngtoolPath = ''
         clear_command = 'cls'
+    
+    # Auto-detect hcxpcapngtool if not already configured
+    if not hcxpcapngtoolPath:
+        hcxpcapngtoolPath = shutil.which('hcxpcapngtool')
+        if hcxpcapngtoolPath:
+            print(f"Detected hcxpcapngtool at {hcxpcapngtoolPath}")
+        else:
+            print("hcxpcapngtool not found in PATH. Please specify manually.")
 
 # Save current configuration
 def save_config():
@@ -189,9 +198,10 @@ def browse_hcxpcapngtool():
 
 def convert2hccap():
     if not hcxpcapngtoolPath:
-        messagebox.showerror("Error", "Please specify the path to hcxpcapngtool first.")
+        messagebox.showerror("Error", "hcxpcapngtool not found. Please specify the path in Settings.")
     else:
-        mycommand = f'{hcxpcapngtoolPath} "{pcap}" -o "{hccap}"'
+        mycommand = f'"{hcxpcapngtoolPath}" "{pcap}" -o "{hccap}"'
+        print(f"Executing: {mycommand}")
         os.system(mycommand)
 
 def hashcat():
